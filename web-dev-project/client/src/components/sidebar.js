@@ -13,6 +13,7 @@ import SearchUser from './SearchUser';
 import { logout } from '../redux/userSlice';
 import { HiMiniPhoto } from "react-icons/hi2";
 import { IoVideocam } from "react-icons/io5";
+import { IoCallSharp } from "react-icons/io5";
 
 const Sidebar = () => {
   const [iconSrc, setIconSrc] = useState(chaticon2); 
@@ -24,7 +25,9 @@ const Sidebar = () => {
   const dispatch = useDispatch()
   const navigate = useNavigate()
 
-
+  const handleVideoCall = () => {
+    navigate('/video-call'); // Navigate to the video call page
+  };
   useEffect(()=>{
     if(socketConnection){
         socketConnection.emit('sidebar',user._id)
@@ -85,6 +88,7 @@ const handleLogout = ()=>{
           <div title='addfriends' onClick={()=>setOpenSearchUser(true)} className="w-12 h-10 flex justify-center items-center cursor-pointer rounded hover:bg-slate-200">
             <FaUserAstronaut size={25} />
           </div>
+          <div className='w-12 h-10 flex justify-center items-center cursor-pointer rounded hover:bg-slate-200' onClick={handleVideoCall}><IoCallSharp size={25}/></div>
         </div>
 
         {/* Bottom Avatar and Logout Button */}
@@ -121,7 +125,7 @@ const handleLogout = ()=>{
       console.log('Profile pic:', conv?.userDetails?.profile_pic);
       console.log('Name:', conv?.userDetails?.name);
       return (
-        <div key={conv?._id} className='flex items-center gap-2 mt-2 border border-transparent hover:border-blue-500 rounded-lg p-2 hover:bg-slate-100 cursor-pointer transition duration-150'>
+        <NavLink to={"/"+ conv?.userDetails?._id} key={conv?._id} className='flex items-center gap-2 mt-2 border border-transparent hover:border-blue-500 rounded-lg p-2 hover:bg-slate-100 cursor-pointer transition duration-150'>
         {/* Avatar */}
         <Avatar
           imageUrl={conv?.userDetails?.profile_pic}
@@ -146,14 +150,19 @@ const handleLogout = ()=>{
                 <span>Video</span>
               </div>
             )}
-            <p className='text-xs'>{conv?.lastMsg?.text || ''}</p>
+            <p className='text-ellipsis line-clamp-1'>{conv?.lastMsg?.text || ''}</p>
           </div>
         </div>
   
         {/* Unseen Messages */}
-        <p className='text-xs w-5 h-5 flex justify-center items-center ml-auto p-1 bg-blue-400 text-white font-semibold rounded-full mr-12'>          {conv?.unseenMsg}
+        {
+          Boolean(conv?.unseenMsg) && (
+            <p className='text-xs w-5 h-5 flex justify-center items-center ml-auto p-1 bg-blue-400 text-white font-semibold rounded-full mr-12'>{conv?.unseenMsg}
         </p>
-      </div>
+          )
+        }
+        
+      </NavLink>
       );
     })
   }

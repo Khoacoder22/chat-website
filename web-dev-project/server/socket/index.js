@@ -5,6 +5,8 @@ const app = express()
 const getUserDetailsFromToken = require('../helper/getUserDetailFromToken')
 const UserModel = require('../models/UserModel')
 const {ConversationModel, MessageModel} = require('../models/ConversationModel')
+const getConversation = require('../helper/getConversation')
+
 
 /**socket connection**/ 
 const server = http.createServer(app)
@@ -54,6 +56,7 @@ io.on('connection',async(socket) =>{
         }).populate('messages').sort({updateAt : -1})
 
         socket.emit('message',getConversationMessage?.messages || [])
+        
     });
 
     // new message 
@@ -97,33 +100,45 @@ io.on('connection',async(socket) =>{
 
         io.to(data?.sender).emit('message', getConversationMessage?.messages || [])
         io.to(data?.receiver).emit('message', getConversationMessage?.messages || [])
+
+        // send conversation
+        const ConversationSender = await getConversation(data?.sender)
+        const ConversationReceiver = await getConversation(data?.receiver)
+
+        io.to(data?.sender).emit('conversation', ConversationSender)
+        io.to(data?.receiver).emit('conversation', ConversationReceiver?.messages || [])
     })
 
     // sidebar
     socket.on('sidebar',async(currentUserId)=>{
         console.log("current user", currentUserId)
-        if(currentUserId){
-            const currentUserConversation = await ConversationModel.find({
-                "$or" : [
-                    {sender : currentUserId},
-                    {receiver : currentUserId}
-                ]
-            }).sort({ updateAt : -1 }).populate('messages').populate('sender').populate('receiver')
-    
-            const conversation = currentUserConversation.map((conv)=>{
-    
-                const countUnseenMsg = conv.messages.reduce((preve,curr) => preve + (curr.seen ? 0 : 1), 0)
-    
-                return{
-                    _id : conv?._id,
-                    sender : conv?.sender,
-                    receiver : conv?.receiver, 
-                    unseenMsg : countUnseenMsg,
-                    lastMsg : conv.messages[conv?.messages?.length - 1]
-                }
-            })
-            socket.emit('conversation', conversation)
-        }
+        const ConversationSideBar = await getConversation(currentUserId)
+        socket.emit('conversation', ConversationSideBar)
+    })
+
+    // seen
+    socket.on('seen',async(msgByUserId)=>{
+        
+        let conversation = await ConversationModel.findOne({
+            "$or" : [
+                { sender : user?._id, receiver : msgByUserId },
+                { sender : msgByUserId, receiver :  user?._id}
+            ]
+        })
+
+        const conversationMessageId = conversation?.messages || []
+
+        const updateMessages  = await MessageModel.updateMany(
+            { _id : { "$in" : conversationMessageId }, msgByUserId : msgByUserId },
+            { "$set" : { seen : true }}
+        )
+
+        //send conversation
+        const conversationSender = await getConversation(user?._id?.toString())
+        const conversationReceiver = await getConversation(msgByUserId)
+
+        io.to(user?._id?.toString()).emit('conversation',conversationSender)
+        io.to(msgByUserId).emit('conversation',conversationReceiver)
     })
 
     // disconnect
@@ -131,6 +146,32 @@ io.on('connection',async(socket) =>{
         onlineUser.delete(user?._id)
         console.log('disconnected user.', socket.id)
     })
+
+    // calling
+    socket.on('join-room', ({ roomId, userId }) => {
+        socket.join(roomId);
+        console.log(`${userId} joined room ${roomId}`);
+        socket.to(roomId).emit('user-connected', userId);
+
+        // Handle signaling
+        socket.on('offer', (data) => {
+            socket.to(roomId).emit('offer', data);
+        });
+
+        socket.on('answer', (data) => {
+            socket.to(roomId).emit('answer', data);
+        });
+
+        socket.on('candidate', (data) => {
+            socket.to(roomId).emit('candidate', data);
+        });
+
+        // Handle user disconnect
+        socket.on('disconnect', () => {
+            console.log(`User ${userId} disconnected`);
+            socket.to(roomId).emit('user-disconnected', userId);
+        });
+    });
 })
 
 module.exports = {
