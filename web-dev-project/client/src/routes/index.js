@@ -7,7 +7,7 @@ import HomePage from "../pages/HomePage";
 import MessagePage from "../components/MessagePage";
 import AuthLayouts from "../layout/index";
 import Forgotpassword from "../pages/Forgotpassword";
-import VideoCall from '../pages/VideoCall';
+
 
 const router = createBrowserRouter([
   {
@@ -37,10 +37,6 @@ const router = createBrowserRouter([
           {
             path : ':userId',
             element: <MessagePage />
-          },
-          {
-            path: 'video-call',
-            element: <VideoCall />,
           }
         ]
       }

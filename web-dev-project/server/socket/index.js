@@ -28,7 +28,7 @@ io.on('connection',async(socket) =>{
     // current user detail
     const user = await getUserDetailsFromToken(token)
  
-    // socket.join(user?._id.toString())
+    socket.join(user?._id.toString())
     // console.log("user", user)
     onlineUser.add(user?._id?.toString())
 
@@ -140,56 +140,12 @@ io.on('connection',async(socket) =>{
         io.to(user?._id?.toString()).emit('conversation',conversationSender)
         io.to(msgByUserId).emit('conversation',conversationReceiver)
     })
-
-    // calling
- socket.on('join-room', (roomId) => {
-    if (!roomId) {
-        console.error('Room ID không hợp lệ.');
-        return;
-    }
-
-    console.log(`Socket ${socket.id} tham gia phòng: ${roomId}`);
-    socket.join(roomId);
-
-    // Gửi thông báo tới các thành viên khác trong phòng
-    socket.to(roomId).emit('user-connected', socket.id); // Thông báo socket ID đã kết nối
-
-    // Xử lý các tín hiệu WebRTC (signaling)
-    socket.on('offer', (data) => {
-        console.log(`Offer nhận từ ${socket.id}:`, data);
-        socket.to(roomId).emit('offer', data); // Chuyển tiếp offer tới các thành viên khác
-    });
-
-    socket.on('answer', (data) => {
-        console.log(`Answer nhận từ ${socket.id}:`, data);
-        socket.to(roomId).emit('answer', data); // Chuyển tiếp answer tới các thành viên khác
-    });
-
-    socket.on('candidate', (data) => {
-        console.log(`Candidate nhận từ ${socket.id}:`, data);
-        socket.to(roomId).emit('candidate', data); // Chuyển tiếp candidate tới các thành viên khác
-    });
-
-    // Khi người dùng rời phòng
-    socket.on('leave-room', () => {
-        console.log(`Socket ${socket.id} rời phòng: ${roomId}`);
-        socket.to(roomId).emit('user-disconnected', socket.id);
-        socket.leave(roomId);
-    });
-
-    // Xử lý khi ngắt kết nối
-    socket.on('disconnect', () => {
-        console.log(`Socket ${socket.id} ngắt kết nối.`);
-        socket.to(roomId).emit('user-disconnected', socket.id);
-    });
-});
-
     // disconnect
     socket.on('disconnect',()=>{
         onlineUser.delete(user?._id)
         console.log('disconnected user.', socket.id)
-    })
 })
+});
 
 module.exports = {
     app,

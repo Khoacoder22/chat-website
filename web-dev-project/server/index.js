@@ -32,7 +32,6 @@ app.use('/api', router)
 // Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-
 connectDB().then(()=>{
 // Start the server and log the running port
 server.listen(PORT, () =>{ console.log(`Server running at port ${PORT}`)

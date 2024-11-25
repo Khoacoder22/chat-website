@@ -110,7 +110,7 @@ const CheckEmail = () => {
               className='hover:underline font-semibold'
               style={{ color: '#00cec9', textAlign: 'center', marginTop: '12px' }}
             >
-              Login
+              Register
             </Link>
           </p>
         </form>

@@ -3,6 +3,8 @@ import { useSelector } from "react-redux";
 import { useParams, Link } from "react-router-dom";
 import Avatar from "./Avatar";
 import upLoadFile from "../helpers/upLoadFile";
+import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
+import { checkGrammar } from "../helpers/grammarUtils";
 // Another component
 import Loading from './Loading';
 // icon
@@ -13,6 +15,8 @@ import { FaRegImage } from "react-icons/fa6";
 import { FaVideo } from "react-icons/fa6";
 import { IoClose } from "react-icons/io5";
 import { IoSend } from "react-icons/io5";
+import { FaMicrophone } from "react-icons/fa6";
+import { SiGrammarly } from "react-icons/si";
 
 // sub functions
 import moment from 'moment'
@@ -32,11 +36,33 @@ const MessagePage = () => {
     _id: "",
   });
   
+  const {
+    transcript,
+    listening,
+    resetTranscript,
+  } = useSpeechRecognition();
+
   const [message, setMessage] = useState({
     text: "",
     imageUrl: "",
     videoUrl: ""
   })
+
+  useEffect(() => {
+    setMessage((prevMessage) => ({
+      ...prevMessage,
+      text: transcript,
+    }));
+  }, [transcript]);
+
+  const handleMicrophoneClick = () => {
+    if (listening) {
+      SpeechRecognition.stopListening(); 
+    } else {
+      SpeechRecognition.startListening({ continuous: true }); 
+    }
+  };
+
   const [openImage, setopenImage] = useState(false);
   const [allMessage, setAllMessage] = useState([])
   const currentMessage = useRef(null)
@@ -153,7 +179,6 @@ const MessagePage = () => {
       })
   }
 
-
   return (
     <div style={{backgroundImage:`url(${wallpaper})`}} className="bg-no-repeat bg-cover">
       {/* Header Section */}
@@ -199,7 +224,7 @@ const MessagePage = () => {
           {
             allMessage.map((msg,index)=>{
               return(
-             <div className={`bg-white p-1 py-1 my-2 rounded w-fit max-w-[230px] md:max-w-sm lg:max-w-md ${user._id === msg.msgByUserId ? "ml-auto bg-teal-400" : ""}`}>
+             <div className={`bg-white p-1 py-1 my-2 rounded w-fit max-w-[230px] md:max-w-sm lg:max-w-md ${user._id === msg.msgByUserId ? "ml-auto bg-teal-300" : ""}`}>
                   <div className="w-full">
                   {
                     msg?.imageUrl && (
@@ -306,6 +331,32 @@ const MessagePage = () => {
           <button className="hover:text-blue-400">
           <IoSend size={25} onClick={handleSendMessage}/>
           </button>
+          {/* speech recognition */}
+          <button
+          className={`hover:text-blue-400 ml-3 ${
+            listening ? "text-red-500" : ""
+          }`}
+          onClick={handleMicrophoneClick}
+        >
+          <FaMicrophone size={25} />
+        </button>
+        {/* check grammar */}
+        <button
+  className="hover:text-blue-400 ml-3"
+  onClick={async () => {
+    try {
+      const correctedText = await checkGrammar(message.text); 
+      setMessage((prev) => ({
+        ...prev,
+        text: correctedText, 
+      }));
+    } catch (error) {
+      alert(error.message); 
+    }
+  }}
+>
+  <SiGrammarly size={25} />
+</button>
       </footer>
     </div>
   );

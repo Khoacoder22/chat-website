@@ -24,10 +24,7 @@ const Sidebar = () => {
   const socketConnection = useSelector((state) => state?.user?.socketConnection);
   const dispatch = useDispatch()
   const navigate = useNavigate()
-
-  const handleVideoCall = () => {
-    navigate('/video-call'); // Navigate to the video call page
-  };
+  
   useEffect(()=>{
     if(socketConnection){
         socketConnection.emit('sidebar',user._id)
@@ -88,7 +85,6 @@ const handleLogout = ()=>{
           <div title='addfriends' onClick={()=>setOpenSearchUser(true)} className="w-12 h-10 flex justify-center items-center cursor-pointer rounded hover:bg-slate-200">
             <FaUserAstronaut size={25} />
           </div>
-          <div className='w-12 h-10 flex justify-center items-center cursor-pointer rounded hover:bg-slate-200' onClick={handleVideoCall}><IoCallSharp size={25}/></div>
         </div>
 
         {/* Bottom Avatar and Logout Button */}
