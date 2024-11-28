@@ -9,6 +9,10 @@
     {
       "url": "https://chat-website-hjra.onrender.com",
       "description": "Local server"
+    },
+    {
+      "url": "https://chat-website-hjra.onrender.com",
+      "description": "Domain server"
     }
   ],
   "tags": [
