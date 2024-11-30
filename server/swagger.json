@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "https://chat-website-hjra.onrender.com",
+      "url": "http://localhost:8080",
       "description": "Local server"
     },
     {

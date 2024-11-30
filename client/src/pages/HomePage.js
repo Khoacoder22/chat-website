@@ -19,6 +19,8 @@ const Home = () => {
   console.log('user', user);
   const fetchUserDetail = async () => {
     try {
+      const token = localStorage.getItem('token');
+      console.log("token",token)
       const URL = `${process.env.REACT_APP_BACKEND_URL}/api/user_detail`;
       const response = await axios({
         url: URL,

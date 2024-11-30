@@ -21,7 +21,6 @@ const getConversation = async(currentUserId)=>{
              
             },0)
             
-            
             return{
                 _id : conv?._id,
                 sender : conv?.sender,
